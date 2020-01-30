@@ -8,7 +8,7 @@ There are three files in total:
 
 - `commongen.train.jsonl`: the training set
 - `commongen.dev.jsonl`: the development/validation set
-- `commongen.test_input.jsonl`: the test set (only the inputs). Note that we hold the human annotations of the test set for the challenge use, and you can submit your generation results to us for testing.
+- `commongen.test.jsonl`: the test set.
 
 Each line of the `jsonl` files is a json-format string that can be parsed as a dictionary. There are two main keys for training and testing: `concept_set` and `scene` as well as `reason` (only in dev and test). The value of a `concept-set` item is a string like `apple_N#bag_N#pick_V#put_V#tree_N`, which can be split by the `#` and the part-of-speech tag of each concept is indicated with its suffix `_N` (noun) or `_V` (verb). Each `scene` item is a list of sentences that describe everyday scenarios about the associated concept-set. Additionally, in the devlopment/test set, we provide human-annotated rationales (i.e. a list of sentences for explaining the commonsense knowledge about the specific scene）as the `reason` part.
 
