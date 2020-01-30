@@ -26,3 +26,7 @@
  year = {2019} 
 }
 ```
+
+#### Contact
+
+Feel free to directly email yuchen[dot]lin[at]usc[dot]edu if you have any feedback. 
