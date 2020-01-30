@@ -1,0 +1,148 @@
+# FAQ
+
+## How do I use Pretrained embeddings (e.g. GloVe)?
+
+Using vocabularies from OpenNMT-py preprocessing outputs, `embeddings_to_torch.py` to generate encoder and decoder embeddings initialized with GloVe's values.
+
+the script is a slightly modified version of ylhsieh's one2.
+
+Usage:
+
+```
+embeddings_to_torch.py [-h] [-emb_file_both EMB_FILE_BOTH]
+                       [-emb_file_enc EMB_FILE_ENC]
+                       [-emb_file_dec EMB_FILE_DEC] -output_file
+                       OUTPUT_FILE -dict_file DICT_FILE [-verbose]
+                       [-skip_lines SKIP_LINES]
+                       [-type {GloVe,word2vec}]
+```
+Run embeddings_to_torch.py -h for more usagecomplete info.
+
+Example
+
+
+1) get GloVe files:
+
+```
+mkdir "glove_dir"
+wget http://nlp.stanford.edu/data/glove.6B.zip
+unzip glove.6B.zip -d "glove_dir"
+```
+
+2) prepare data:
+
+```
+onmt_preprocess \
+-train_src data/train.src.txt \
+-train_tgt data/train.tgt.txt \
+-valid_src data/valid.src.txt \
+-valid_tgt data/valid.tgt.txt \
+-save_data data/data
+```
+
+3) prepare embeddings:
+
+```
+./tools/embeddings_to_torch.py -emb_file_both "glove_dir/glove.6B.100d.txt" \
+-dict_file "data/data.vocab.pt" \
+-output_file "data/embeddings"
+```
+
+4) train using pre-trained embeddings:
+
+```
+onmt_train -save_model data/model \
+           -batch_size 64 \
+           -layers 2 \
+           -rnn_size 200 \
+           -word_vec_size 100 \
+           -pre_word_vecs_enc "data/embeddings.enc.pt" \
+           -pre_word_vecs_dec "data/embeddings.dec.pt" \
+           -data data/data
+```
+
+
+## How do I use the Transformer model?
+
+The transformer model is very sensitive to hyperparameters. To run it
+effectively you need to set a bunch of different options that mimic the Google
+setup. We have confirmed the following command can replicate their WMT results.
+
+```
+python  train.py -data /tmp/de2/data -save_model /tmp/extra \
+        -layers 6 -rnn_size 512 -word_vec_size 512 -transformer_ff 2048 -heads 8  \
+        -encoder_type transformer -decoder_type transformer -position_encoding \
+        -train_steps 200000  -max_generator_batches 2 -dropout 0.1 \
+        -batch_size 4096 -batch_type tokens -normalization tokens  -accum_count 2 \
+        -optim adam -adam_beta2 0.998 -decay_method noam -warmup_steps 8000 -learning_rate 2 \
+        -max_grad_norm 0 -param_init 0  -param_init_glorot \
+        -label_smoothing 0.1 -valid_steps 10000 -save_checkpoint_steps 10000 \
+        -world_size 4 -gpu_ranks 0 1 2 3 
+```
+
+Here are what each of the parameters mean:
+
+* `param_init_glorot` `-param_init 0`: correct initialization of parameters
+* `position_encoding`: add sinusoidal position encoding to each embedding
+* `optim adam`, `decay_method noam`, `warmup_steps 8000`: use special learning rate.
+* `batch_type tokens`, `normalization tokens`, `accum_count 4`: batch and normalize based on number of tokens and not sentences. Compute gradients based on four batches. 
+- `label_smoothing 0.1`: use label smoothing loss. 
+
+
+## Do you support multi-gpu?
+
+First you need to make sure you `export CUDA_VISIBLE_DEVICES=0,1,2,3`.
+
+If you want to use GPU id 1 and 3 of your OS, you will need to `export CUDA_VISIBLE_DEVICES=1,3`
+
+Both `-world_size` and `-gpu_ranks` need to be set. E.g. `-world_size 4 -gpu_ranks 0 1 2 3` will use 4 GPU on this node only.
+
+If you want to use 2 nodes with 2 GPU each, you need to set `-master_ip` and `-master_port`, and
+* `-world_size 4 -gpu_ranks 0 1`: on the first node
+* `-world_size 4 -gpu_ranks 2 3`: on the second node
+* `-accum_count 2`: This will accumulate over 2 batches before updating parameters.
+
+if you use a regular network card (1 Gbps) then we suggest to use a higher `-accum_count` to minimize the inter-node communication.
+
+**Note:**
+
+When training on several GPUs, you can't have them in 'Exclusive' compute mode (`nvidia-smi -c 3`).
+
+The multi-gpu setup relies on a Producer/Consumer setup. This setup means there will be `2<n_gpu> + 1` processes spawned, with 2 processes per GPU, one for model training and one (Consumer) that hosts a `Queue` of batches that will be processed next. The additional process is the Producer, creating batches and sending them to the Consumers. This setup is beneficial for both wall time and memory, since it loads data shards 'in advance', and does not require to load it for each GPU process.
+
+## How can I ensemble Models at inference?
+
+You can specify several models in the translate.py command line: -model model1_seed1 model2_seed2
+Bear in mind that your models must share the same target vocabulary.
+
+## How can I weight different corpora at training?
+
+### Preprocessing
+
+We introduced `-train_ids` which is a list of IDs that will be given to the preprocessed shards.
+
+E.g. we have two corpora : `parallel.en` and  `parallel.de` + `from_backtranslation.en` `from_backtranslation.de`, we can pass the following in the `preprocess.py` command:
+```
+...
+-train_src parallel.en from_backtranslation.en \
+-train_tgt parallel.de from_backtranslation.de \
+-train_ids A B \
+-save_data my_data \
+...
+```
+and it will dump `my_data.train_A.X.pt` based on `parallel.en`//`parallel.de` and `my_data.train_B.X.pt` based on `from_backtranslation.en`//`from_backtranslation.de`.
+
+### Training
+
+We introduced `-data_ids` based on the same principle as above, as well as `-data_weights`, which is the list of the weight each corpus should have.
+E.g.
+```
+...
+-data my_data \
+-data_ids A B \
+-data_weights 1 7 \
+...
+```
+will mean that we'll look for `my_data.train_A.*.pt` and `my_data.train_B.*.pt`, and that when building batches, we'll take 1 example from corpus A, then 7 examples from corpus B, and so on.
+
+**Warning**: This means that we'll load as many shards as we have `-data_ids`, in order to produce batches containing data from every corpus. It may be a good idea to reduce the `-shard_size` at preprocessing.
