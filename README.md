@@ -18,12 +18,12 @@
 
 
 ```
-@article{lin2019comgen, 
- author = {Bill Yuchen Lin and Ming Shen and Yu Xing and Pei Zhou and Xiang Ren}, 
- title = {CommonGen: A Constrained Text Generation Dataset Towards Generative Commonsense Reasoning}, 
- journal = {CoRR},
- volume = {abs/1911.03705},
- year = {2019} 
+@article{lin2019comgen,
+    author = {Bill Yuchen Lin and Ming Shen and Wangchunshu Zhou and Pei Zhou and Chandra Bhagavatula and Yejin Choi and Xiang Ren},
+    title = {CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning},
+    journal = {Findings of EMNLP},
+    year = {2020}
+    note = {to appear}
 }
 ```
 
