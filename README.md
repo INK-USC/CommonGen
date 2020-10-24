@@ -3,10 +3,10 @@
 
 ```
 @article{lin2019comgen,
-    author = {Bill Yuchen Lin and Ming Shen and Wangchunshu Zhou and Pei Zhou and Chandra Bhagavatula and Yejin Choi and Xiang Ren},
+    author = {Bill Yuchen Lin  and Wangchunshu Zhou and Ming Shen and Pei Zhou and Chandra Bhagavatula and Yejin Choi and Xiang Ren},
     title = {CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning},
     journal = {Findings of EMNLP},
-    year = {2020}
+    year = {2020},
     note = {to appear}
 }
 ```
