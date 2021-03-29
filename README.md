@@ -6,8 +6,7 @@
     author = {Bill Yuchen Lin  and Wangchunshu Zhou and Ming Shen and Pei Zhou and Chandra Bhagavatula and Yejin Choi and Xiang Ren},
     title = {CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning},
     journal = {Findings of EMNLP},
-    year = {2020},
-    note = {to appear}
+    year = {2020}
 }
 ```
 
@@ -19,13 +18,12 @@
 
 #### Content
 
-- `dataset/final_data` saves the latest version of the data. We may have updates on the dataset in the future. Please stay tuned.
 
 - `methods` shows some baseline methods with many frameworks such as OpenNMT and Fariseq, as well as UniLM.
 
 - `evaluation` contains the evaluation scripts for a variety of automatic metrics for testing the performance of system predictions against human-written results.
 
-
+Please find our dataset at https://inklab.usc.edu/CommonGen/
 
 
 #### Contact
