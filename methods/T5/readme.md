@@ -16,7 +16,7 @@ git clone https://github.com/NVIDIA/apex.git && cd apex && python setup.py insta
 
 Install the repo as a package:
 ```bash
-cd transformers_local ; pip install --editable .
+cd transformer_local ; pip install --editable .
 ```
 
 
