@@ -1,3 +1,6 @@
+
+# Please check out the new repo: [https://github.com/allenai/CommonGen-Eval](https://github.com/allenai/CommonGen-Eval)
+
 ## CommonGen: A Constrained Text Generation Challenge Towards Generative Commonsense Reasoning
 
 
